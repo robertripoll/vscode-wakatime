@@ -124,6 +124,19 @@
           "type": "string",
           "description": "Defaults to https://api.wakatime.com/api/v1.",
           "scope": "application"
+        },
+        "wakatime.cfClientId": {
+          "type": "string",
+          "description": "CloudFlare Access Client ID",
+          "scope": "application",
+          "default": ""
+        },
+        "wakatime.cfClientSecret": {
+          "type": "string",
+          "description": "CloudFlare Access Client Secret",
+          "scope": "application",
+          "default": "",
+          "ignoreSync": true
         }
       }
     }

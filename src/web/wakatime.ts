@@ -5,6 +5,7 @@ import { COMMAND_DASHBOARD, LogLevel } from '../constants';
 import { Logger } from './logger';
 import { Memento } from 'vscode';
 import { Utils } from '../utils';
+import { generateHeaders } from './utils';
 
 interface FileSelection {
   selection: vscode.Position;
@@ -499,10 +500,10 @@ export class WakaTime {
     try {
       const response = await fetch(url, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Machine-Name': vscode.env.appHost,
-        },
+        headers: generateHeaders({
+          cfClientId: this.config.get('wakatime.cfClientId'),
+          cfClientSecret: this.config.get('wakatime.cfClientSecret'),
+        }),
         body: JSON.stringify(payload),
       });
       const parsedJSON = await response.json();
@@ -565,11 +566,12 @@ export class WakaTime {
     try {
       const response = await fetch(url, {
         method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'User-Agent':
-            this.agentName + '/' + vscode.version + ' vscode-wakatime/' + this.extension.version,
-        },
+        headers: generateHeaders({
+          cfClientId: this.config.get('wakatime.cfClientId'),
+          cfClientSecret: this.config.get('wakatime.cfClientSecret'),
+        }, {
+          'User-Agent': this.agentName + '/' + vscode.version + ' vscode-wakatime/' + this.extension.version,
+        }),
       });
       const parsedJSON = await response.json();
       if (response.status == 200) {
@@ -662,11 +664,12 @@ export class WakaTime {
     try {
       const response = await fetch(url, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'User-Agent':
-            this.agentName + '/' + vscode.version + ' vscode-wakatime/' + this.extension.version,
-        },
+        headers: generateHeaders({
+          cfClientId: this.config.get('wakatime.cfClientId'),
+          cfClientSecret: this.config.get('wakatime.cfClientSecret'),
+        }, {
+          'User-Agent': this.agentName + '/' + vscode.version + ' vscode-wakatime/' + this.extension.version,
+        }),
         body: JSON.stringify(payload),
       });
       const parsedJSON = await response.json();
