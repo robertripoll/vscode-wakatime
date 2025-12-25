@@ -758,6 +758,15 @@ export class WakaTime {
     const apiUrl = await this.options.getApiUrl();
     if (apiUrl) args.push('--api-url', Utils.quote(apiUrl));
 
+    const cfAccessClientId = this.options.getCfAccessClientId();
+    const cfAccessClientSecret = this.options.getCfAccessClientSecret();
+    if (cfAccessClientId) {
+      args.push('--header', Utils.quote(`CF-Access-Client-Id: ${cfAccessClientId}`));
+    }
+    if (cfAccessClientSecret) {
+      args.push('--header', Utils.quote(`CF-Access-Client-Secret: ${cfAccessClientSecret}`));
+    }
+
     if (heartbeat.alternate_project) {
       args.push('--alternate-project', Utils.quote(heartbeat.alternate_project));
     }
@@ -895,6 +904,15 @@ export class WakaTime {
     const apiUrl = await this.options.getApiUrl();
     if (apiUrl) args.push('--api-url', Utils.quote(apiUrl));
 
+    const cfAccessClientId = this.options.getCfAccessClientId();
+    const cfAccessClientSecret = this.options.getCfAccessClientSecret();
+    if (cfAccessClientId) {
+      args.push('--header', Utils.quote(`CF-Access-Client-Id: ${cfAccessClientId}`));
+    }
+    if (cfAccessClientSecret) {
+      args.push('--header', Utils.quote(`CF-Access-Client-Secret: ${cfAccessClientSecret}`));
+    }
+
     if (Desktop.isWindows()) {
       args.push(
         '--config',
@@ -1012,6 +1030,15 @@ export class WakaTime {
 
     const apiUrl = await this.options.getApiUrl();
     if (apiUrl) args.push('--api-url', Utils.quote(apiUrl));
+
+    const cfAccessClientId = this.options.getCfAccessClientId();
+    const cfAccessClientSecret = this.options.getCfAccessClientSecret();
+    if (cfAccessClientId) {
+      args.push('--header', Utils.quote(`CF-Access-Client-Id: ${cfAccessClientId}`));
+    }
+    if (cfAccessClientSecret) {
+      args.push('--header', Utils.quote(`CF-Access-Client-Secret: ${cfAccessClientSecret}`));
+    }
 
     const project = this.getProjectName(doc.uri);
     if (project) args.push('--alternate-project', Utils.quote(project));

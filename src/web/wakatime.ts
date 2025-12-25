@@ -664,6 +664,7 @@ export class WakaTime {
         headers: {
           'Content-Type': 'application/json',
           'X-Machine-Name': vscode.env.appHost,
+          ...this.getCfAccessHeaders(),
         },
         body: JSON.stringify(payload),
       });
@@ -731,6 +732,7 @@ export class WakaTime {
           'Content-Type': 'application/json',
           'User-Agent':
             this.agentName + '/' + vscode.version + ' vscode-wakatime/' + this.extension.version,
+          ...this.getCfAccessHeaders(),
         },
       });
       const parsedJSON = await response.json();
@@ -826,6 +828,7 @@ export class WakaTime {
           'Content-Type': 'application/json',
           'User-Agent':
             this.agentName + '/' + vscode.version + ' vscode-wakatime/' + this.extension.version,
+          ...this.getCfAccessHeaders(),
         },
         body: JSON.stringify(payload),
       });
@@ -986,6 +989,19 @@ export class WakaTime {
       }
     }
     return apiUrl;
+  }
+
+  private getCfAccessHeaders(): Record<string, string> {
+    const headers: Record<string, string> = {};
+    const cfAccessClientId: string = this.config.get('wakatime.cfAccessClientId') || '';
+    const cfAccessClientSecret: string = this.config.get('wakatime.cfAccessClientSecret') || '';
+    if (cfAccessClientId) {
+      headers['CF-Access-Client-Id'] = cfAccessClientId;
+    }
+    if (cfAccessClientSecret) {
+      headers['CF-Access-Client-Secret'] = cfAccessClientSecret;
+    }
+    return headers;
   }
 
   private countSlashesInPath(path: string): number {

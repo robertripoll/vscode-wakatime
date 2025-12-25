@@ -309,6 +309,14 @@ export class Options {
     return vscode.workspace.getConfiguration().get('wakatime.apiUrl') || '';
   }
 
+  public getCfAccessClientId(): string {
+    return vscode.workspace.getConfiguration().get('wakatime.cfAccessClientId') || '';
+  }
+
+  public getCfAccessClientSecret(): string {
+    return vscode.workspace.getConfiguration().get('wakatime.cfAccessClientSecret') || '';
+  }
+
   public getStatusBarAlignment(): vscode.StatusBarAlignment {
     const align: string = vscode.workspace.getConfiguration().get('wakatime.align') ?? '';
     switch (align) {
