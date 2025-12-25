@@ -9,7 +9,7 @@ import {
 } from '../constants';
 
 import { Logger } from './logger';
-import { Memento } from 'vscode';
+import { Memento, SecretStorage } from 'vscode';
 import { FileSelectionMap, LineCounts, Lines, Utils } from '../utils';
 
 export class WakaTime {
@@ -33,6 +33,7 @@ export class WakaTime {
   private AIrecentPastes: number[] = [];
   private logger: Logger;
   private config: Memento;
+  private secrets?: SecretStorage;
   private fetchTodayInterval: number = 60000;
   private lastFetchToday: number = 0;
   private showStatusBar: boolean;
@@ -52,9 +53,10 @@ export class WakaTime {
   private linesInFiles: Lines = {};
   private lineChanges: LineCounts = { ai: {}, human: {} };
 
-  constructor(logger: Logger, config: Memento) {
+  constructor(logger: Logger, config: Memento, secrets?: SecretStorage) {
     this.logger = logger;
     this.config = config;
+    this.secrets = secrets;
   }
 
   public initialize(): void {
@@ -659,12 +661,13 @@ export class WakaTime {
     const url = `${apiUrl}/users/current/heartbeats.bulk?api_key=${apiKey}`;
 
     try {
+      const cfAccessHeaders = await this.getCfAccessHeaders();
       const response = await fetch(url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'X-Machine-Name': vscode.env.appHost,
-          ...this.getCfAccessHeaders(),
+          ...cfAccessHeaders,
         },
         body: JSON.stringify(payload),
       });
@@ -726,13 +729,14 @@ export class WakaTime {
     const apiUrl = this.getApiUrl();
     const url = `${apiUrl}/users/current/statusbar/today?api_key=${apiKey}`;
     try {
+      const cfAccessHeaders = await this.getCfAccessHeaders();
       const response = await fetch(url, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
           'User-Agent':
             this.agentName + '/' + vscode.version + ' vscode-wakatime/' + this.extension.version,
-          ...this.getCfAccessHeaders(),
+          ...cfAccessHeaders,
         },
       });
       const parsedJSON = await response.json();
@@ -822,13 +826,14 @@ export class WakaTime {
     payload['project_root_count'] = this.countSlashesInPath(folder);
 
     try {
+      const cfAccessHeaders = await this.getCfAccessHeaders();
       const response = await fetch(url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'User-Agent':
             this.agentName + '/' + vscode.version + ' vscode-wakatime/' + this.extension.version,
-          ...this.getCfAccessHeaders(),
+          ...cfAccessHeaders,
         },
         body: JSON.stringify(payload),
       });
@@ -991,10 +996,12 @@ export class WakaTime {
     return apiUrl;
   }
 
-  private getCfAccessHeaders(): Record<string, string> {
+  private async getCfAccessHeaders(): Promise<Record<string, string>> {
     const headers: Record<string, string> = {};
-    const cfAccessClientId: string = this.config.get('wakatime.cfAccessClientId') || '';
-    const cfAccessClientSecret: string = this.config.get('wakatime.cfAccessClientSecret') || '';
+    if (!this.secrets) return headers;
+    const cfAccessClientId: string = (await this.secrets.get('wakatime.cfAccessClientId')) || '';
+    const cfAccessClientSecret: string =
+      (await this.secrets.get('wakatime.cfAccessClientSecret')) || '';
     if (cfAccessClientId) {
       headers['CF-Access-Client-Id'] = cfAccessClientId;
     }
@@ -1002,6 +1009,57 @@ export class WakaTime {
       headers['CF-Access-Client-Secret'] = cfAccessClientSecret;
     }
     return headers;
+  }
+
+  public async promptForCfAccessClientId(): Promise<void> {
+    const currentVal = this.secrets ? (await this.secrets.get('wakatime.cfAccessClientId')) || '' : '';
+    const promptOptions = {
+      prompt: 'Cloudflare Access Client ID',
+      placeHolder: 'Enter your Cloudflare Access Client ID',
+      value: currentVal,
+      ignoreFocusOut: true,
+    };
+    vscode.window.showInputBox(promptOptions).then(async (val) => {
+      if (val !== undefined && this.secrets) {
+        try {
+          if (val) {
+            await this.secrets.store('wakatime.cfAccessClientId', val);
+            vscode.window.setStatusBarMessage('Cloudflare Access Client ID saved');
+          } else {
+            await this.secrets.delete('wakatime.cfAccessClientId');
+            vscode.window.setStatusBarMessage('Cloudflare Access Client ID cleared');
+          }
+        } catch (err) {
+          this.logger.error(`Failed to save Cloudflare Access Client ID: ${err}`);
+        }
+      }
+    });
+  }
+
+  public async promptForCfAccessClientSecret(): Promise<void> {
+    const currentVal = this.secrets ? (await this.secrets.get('wakatime.cfAccessClientSecret')) || '' : '';
+    const promptOptions = {
+      prompt: 'Cloudflare Access Client Secret',
+      placeHolder: 'Enter your Cloudflare Access Client Secret',
+      value: currentVal,
+      ignoreFocusOut: true,
+      password: true,
+    };
+    vscode.window.showInputBox(promptOptions).then(async (val) => {
+      if (val !== undefined && this.secrets) {
+        try {
+          if (val) {
+            await this.secrets.store('wakatime.cfAccessClientSecret', val);
+            vscode.window.setStatusBarMessage('Cloudflare Access Client Secret saved');
+          } else {
+            await this.secrets.delete('wakatime.cfAccessClientSecret');
+            vscode.window.setStatusBarMessage('Cloudflare Access Client Secret cleared');
+          }
+        } catch (err) {
+          this.logger.error(`Failed to save Cloudflare Access Client Secret: ${err}`);
+        }
+      }
+    });
   }
 
   private countSlashesInPath(path: string): number {

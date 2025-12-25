@@ -113,6 +113,14 @@
       {
         "command": "wakatime.log_file",
         "title": "WakaTime: Open Log File..."
+      },
+      {
+        "command": "wakatime.cf_access_client_id",
+        "title": "WakaTime: Cloudflare Access Client ID"
+      },
+      {
+        "command": "wakatime.cf_access_client_secret",
+        "title": "WakaTime: Cloudflare Access Client Secret"
       }
     ],
     "configuration": {
@@ -141,16 +149,6 @@
           "type": "number",
           "default": 1,
           "description": "Defines priority of the status bar item. Higher values mean the item should be shown more to the left, requires restart of VS Code"
-        },
-        "wakatime.cfAccessClientId": {
-          "type": "string",
-          "description": "Cloudflare Access Client ID for CF-Access-Client-Id header.",
-          "scope": "application"
-        },
-        "wakatime.cfAccessClientSecret": {
-          "type": "string",
-          "description": "Cloudflare Access Client Secret for CF-Access-Client-Secret header.",
-          "scope": "application"
         }
       }
     }

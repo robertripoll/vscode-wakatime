@@ -63,11 +63,11 @@ export class WakaTime {
   private linesInFiles: Lines = {};
   private lineChanges: LineCounts = { ai: {}, human: {} };
 
-  constructor(extensionPath: string, logger: Logger) {
+  constructor(extensionPath: string, logger: Logger, secrets?: vscode.SecretStorage) {
     this.extensionPath = extensionPath;
     this.logger = logger;
     this.setResourcesLocation();
-    this.options = new Options(logger, this.resourcesLocation);
+    this.options = new Options(logger, this.resourcesLocation, secrets);
   }
 
   public initialize(): void {
@@ -758,7 +758,7 @@ export class WakaTime {
     const apiUrl = await this.options.getApiUrl();
     if (apiUrl) args.push('--api-url', Utils.quote(apiUrl));
 
-    this.appendCfAccessHeaders(args);
+    await this.appendCfAccessHeaders(args);
 
     if (heartbeat.alternate_project) {
       args.push('--alternate-project', Utils.quote(heartbeat.alternate_project));
@@ -897,7 +897,7 @@ export class WakaTime {
     const apiUrl = await this.options.getApiUrl();
     if (apiUrl) args.push('--api-url', Utils.quote(apiUrl));
 
-    this.appendCfAccessHeaders(args);
+    await this.appendCfAccessHeaders(args);
 
     if (Desktop.isWindows()) {
       args.push(
@@ -1017,7 +1017,7 @@ export class WakaTime {
     const apiUrl = await this.options.getApiUrl();
     if (apiUrl) args.push('--api-url', Utils.quote(apiUrl));
 
-    this.appendCfAccessHeaders(args);
+    await this.appendCfAccessHeaders(args);
 
     const project = this.getProjectName(doc.uri);
     if (project) args.push('--alternate-project', Utils.quote(project));
@@ -1169,14 +1169,63 @@ export class WakaTime {
     return '';
   }
 
-  private appendCfAccessHeaders(args: string[]): void {
-    const cfAccessClientId = this.options.getCfAccessClientId();
-    const cfAccessClientSecret = this.options.getCfAccessClientSecret();
+  private async appendCfAccessHeaders(args: string[]): Promise<void> {
+    const cfAccessClientId = await this.options.getCfAccessClientId();
+    const cfAccessClientSecret = await this.options.getCfAccessClientSecret();
     if (cfAccessClientId) {
       args.push('--header', Utils.quote(`CF-Access-Client-Id: ${cfAccessClientId}`));
     }
     if (cfAccessClientSecret) {
       args.push('--header', Utils.quote(`CF-Access-Client-Secret: ${cfAccessClientSecret}`));
     }
+  }
+
+  public async promptForCfAccessClientId(): Promise<void> {
+    const currentVal = await this.options.getCfAccessClientId();
+    const promptOptions = {
+      prompt: 'Cloudflare Access Client ID',
+      placeHolder: 'Enter your Cloudflare Access Client ID',
+      value: currentVal,
+      ignoreFocusOut: true,
+    };
+    vscode.window.showInputBox(promptOptions).then(async (val) => {
+      if (val !== undefined) {
+        try {
+          await this.options.setCfAccessClientId(val);
+          if (val) {
+            vscode.window.setStatusBarMessage('Cloudflare Access Client ID saved');
+          } else {
+            vscode.window.setStatusBarMessage('Cloudflare Access Client ID cleared');
+          }
+        } catch (err) {
+          this.logger.error(`Failed to save Cloudflare Access Client ID: ${err}`);
+        }
+      }
+    });
+  }
+
+  public async promptForCfAccessClientSecret(): Promise<void> {
+    const currentVal = await this.options.getCfAccessClientSecret();
+    const promptOptions = {
+      prompt: 'Cloudflare Access Client Secret',
+      placeHolder: 'Enter your Cloudflare Access Client Secret',
+      value: currentVal,
+      ignoreFocusOut: true,
+      password: true,
+    };
+    vscode.window.showInputBox(promptOptions).then(async (val) => {
+      if (val !== undefined) {
+        try {
+          await this.options.setCfAccessClientSecret(val);
+          if (val) {
+            vscode.window.setStatusBarMessage('Cloudflare Access Client Secret saved');
+          } else {
+            vscode.window.setStatusBarMessage('Cloudflare Access Client Secret cleared');
+          }
+        } catch (err) {
+          this.logger.error(`Failed to save Cloudflare Access Client Secret: ${err}`);
+        }
+      }
+    });
   }
 }
