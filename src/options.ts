@@ -19,12 +19,14 @@ export class Options {
   private logFile: string;
   private logger: Logger;
   private cache: any = {};
+  private secrets?: vscode.SecretStorage;
 
-  constructor(logger: Logger, resourcesFolder: string) {
+  constructor(logger: Logger, resourcesFolder: string, secrets?: vscode.SecretStorage) {
     this.logger = logger;
     this.configFile = path.join(Desktop.getHomeDirectory(), '.wakatime.cfg');
     this.internalConfigFile = path.join(resourcesFolder, 'wakatime-internal.cfg');
     this.logFile = path.join(resourcesFolder, 'wakatime.log');
+    this.secrets = secrets;
   }
 
   public async getSettingAsync<T = any>(section: string, key: string): Promise<T> {
@@ -307,6 +309,34 @@ export class Options {
 
   private getApiUrlFromEditor(): string {
     return vscode.workspace.getConfiguration().get('wakatime.apiUrl') || '';
+  }
+
+  public async getCfAccessClientId(): Promise<string> {
+    if (!this.secrets) return '';
+    return (await this.secrets.get('wakatime.cfAccessClientId')) || '';
+  }
+
+  public async getCfAccessClientSecret(): Promise<string> {
+    if (!this.secrets) return '';
+    return (await this.secrets.get('wakatime.cfAccessClientSecret')) || '';
+  }
+
+  public async setCfAccessClientId(value: string): Promise<void> {
+    if (!this.secrets) return;
+    if (value) {
+      await this.secrets.store('wakatime.cfAccessClientId', value);
+    } else {
+      await this.secrets.delete('wakatime.cfAccessClientId');
+    }
+  }
+
+  public async setCfAccessClientSecret(value: string): Promise<void> {
+    if (!this.secrets) return;
+    if (value) {
+      await this.secrets.store('wakatime.cfAccessClientSecret', value);
+    } else {
+      await this.secrets.delete('wakatime.cfAccessClientSecret');
+    }
   }
 
   public getStatusBarAlignment(): vscode.StatusBarAlignment {

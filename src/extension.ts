@@ -3,6 +3,8 @@ import * as vscode from 'vscode';
 import {
   COMMAND_API_KEY,
   COMMAND_API_URL,
+  COMMAND_CF_ACCESS_CLIENT_ID,
+  COMMAND_CF_ACCESS_CLIENT_SECRET,
   COMMAND_CONFIG_FILE,
   COMMAND_DASHBOARD,
   COMMAND_DEBUG,
@@ -21,7 +23,7 @@ var logger = new Logger(LogLevel.INFO);
 var wakatime: WakaTime;
 
 export function activate(ctx: vscode.ExtensionContext) {
-  wakatime = new WakaTime(ctx.extensionPath, logger);
+  wakatime = new WakaTime(ctx.extensionPath, logger, ctx.secrets);
 
   ctx.globalState?.setKeysForSync(['wakatime.apiKey']);
 
@@ -82,6 +84,18 @@ export function activate(ctx: vscode.ExtensionContext) {
   ctx.subscriptions.push(
     vscode.commands.registerCommand(COMMAND_LOG_FILE, function () {
       wakatime.openLogFile();
+    }),
+  );
+
+  ctx.subscriptions.push(
+    vscode.commands.registerCommand(COMMAND_CF_ACCESS_CLIENT_ID, function () {
+      wakatime.promptForCfAccessClientId();
+    }),
+  );
+
+  ctx.subscriptions.push(
+    vscode.commands.registerCommand(COMMAND_CF_ACCESS_CLIENT_SECRET, function () {
+      wakatime.promptForCfAccessClientSecret();
     }),
   );
 

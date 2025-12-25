@@ -113,6 +113,14 @@
       {
         "command": "wakatime.log_file",
         "title": "WakaTime: Open Log File..."
+      },
+      {
+        "command": "wakatime.cf_access_client_id",
+        "title": "WakaTime: Cloudflare Access Client ID"
+      },
+      {
+        "command": "wakatime.cf_access_client_secret",
+        "title": "WakaTime: Cloudflare Access Client Secret"
       }
     ],
     "configuration": {
