@@ -758,14 +758,7 @@ export class WakaTime {
     const apiUrl = await this.options.getApiUrl();
     if (apiUrl) args.push('--api-url', Utils.quote(apiUrl));
 
-    const cfAccessClientId = this.options.getCfAccessClientId();
-    const cfAccessClientSecret = this.options.getCfAccessClientSecret();
-    if (cfAccessClientId) {
-      args.push('--header', Utils.quote(`CF-Access-Client-Id: ${cfAccessClientId}`));
-    }
-    if (cfAccessClientSecret) {
-      args.push('--header', Utils.quote(`CF-Access-Client-Secret: ${cfAccessClientSecret}`));
-    }
+    this.appendCfAccessHeaders(args);
 
     if (heartbeat.alternate_project) {
       args.push('--alternate-project', Utils.quote(heartbeat.alternate_project));
@@ -904,14 +897,7 @@ export class WakaTime {
     const apiUrl = await this.options.getApiUrl();
     if (apiUrl) args.push('--api-url', Utils.quote(apiUrl));
 
-    const cfAccessClientId = this.options.getCfAccessClientId();
-    const cfAccessClientSecret = this.options.getCfAccessClientSecret();
-    if (cfAccessClientId) {
-      args.push('--header', Utils.quote(`CF-Access-Client-Id: ${cfAccessClientId}`));
-    }
-    if (cfAccessClientSecret) {
-      args.push('--header', Utils.quote(`CF-Access-Client-Secret: ${cfAccessClientSecret}`));
-    }
+    this.appendCfAccessHeaders(args);
 
     if (Desktop.isWindows()) {
       args.push(
@@ -1031,14 +1017,7 @@ export class WakaTime {
     const apiUrl = await this.options.getApiUrl();
     if (apiUrl) args.push('--api-url', Utils.quote(apiUrl));
 
-    const cfAccessClientId = this.options.getCfAccessClientId();
-    const cfAccessClientSecret = this.options.getCfAccessClientSecret();
-    if (cfAccessClientId) {
-      args.push('--header', Utils.quote(`CF-Access-Client-Id: ${cfAccessClientId}`));
-    }
-    if (cfAccessClientSecret) {
-      args.push('--header', Utils.quote(`CF-Access-Client-Secret: ${cfAccessClientSecret}`));
-    }
+    this.appendCfAccessHeaders(args);
 
     const project = this.getProjectName(doc.uri);
     if (project) args.push('--alternate-project', Utils.quote(project));
@@ -1188,5 +1167,16 @@ export class WakaTime {
       return vscode.workspace.workspaceFolders[0].uri.fsPath;
     }
     return '';
+  }
+
+  private appendCfAccessHeaders(args: string[]): void {
+    const cfAccessClientId = this.options.getCfAccessClientId();
+    const cfAccessClientSecret = this.options.getCfAccessClientSecret();
+    if (cfAccessClientId) {
+      args.push('--header', Utils.quote(`CF-Access-Client-Id: ${cfAccessClientId}`));
+    }
+    if (cfAccessClientSecret) {
+      args.push('--header', Utils.quote(`CF-Access-Client-Secret: ${cfAccessClientSecret}`));
+    }
   }
 }
